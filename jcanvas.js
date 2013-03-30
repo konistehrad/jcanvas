@@ -121,6 +121,21 @@ jCanvas();
 
 /* Internal helper methods */
 
+var pMatch = new RegExp("^\s*([0-9]+)%\s*$", "i");
+function isPercentage(val) {
+	return (typeof val === "string") && pMatch.test(val);
+}
+function tryConvertPercentage(val,ref) {
+	if( typeof val === "string" )
+	{
+		var result = pMatch.exec(val);
+		if( result !== NULL && $.isNumeric(result[1]) ) {
+			val = (parseFloat(result[1]) / 100) * ref;
+		}
+	}
+	return val;
+}
+
 // Get canvas context
 function getContext(canvas) {
 	return (canvas && canvas.getContext ? canvas.getContext('2d') : NULL);
@@ -2188,6 +2203,7 @@ $.fn.measureText = function(args) {
 // Draw image
 $.fn.drawImage = function self(args) {
 	var $canvases = this, canvas, e, ctx,
+		cleanParams = merge(new jCanvasObject(), args),
 		params = merge(new jCanvasObject(), args),
 		img, imgCtx, source, scaleFactor;
 	
@@ -2207,13 +2223,25 @@ $.fn.drawImage = function self(args) {
 	function draw(e, ctx) {
 	
 		// Calculate image dimensions only once
-		if (e === 0) {
-		
+		//if (e === 0) {
+		{
 			scaleFactor = img.width / img.height;
+			
+			params = merge(new jCanvasObject(), cleanParams);
+			params.x = tryConvertPercentage(cleanParams.x, ctx.canvas.width);
+			params.y = tryConvertPercentage(cleanParams.y, ctx.canvas.height);
+			params.width = tryConvertPercentage(cleanParams.width, ctx.canvas.width);
+			params.height = tryConvertPercentage(cleanParams.height, ctx.canvas.height);
+			params.sx = tryConvertPercentage(cleanParams.sx, img.width);
+			params.sy = tryConvertPercentage(cleanParams.sy, img.height);
+			params.sWidth = tryConvertPercentage(cleanParams.sWidth, img.width);
+			params.sHeight = tryConvertPercentage(cleanParams.sHeight, img.height);
 						
 			// Show entire image if no cropping region is defined
 			
 			// If width and sWidth are not defined, use image width
+			/*
+			// blows up scaleFactor preservation; see tests below
 			if (params.width === NULL && params.sWidth === NULL) {
 				args.width = params.width = params.sWidth = img.width;
 			}
@@ -2221,6 +2249,7 @@ $.fn.drawImage = function self(args) {
 			if (params.height === NULL && params.sHeight === NULL) {
 				args.height = params.height = params.sHeight = img.height;
 			}
+			*/
 			
 			// If width is not defined, use the given sWidth
 			if (params.width === NULL && params.sWidth !== NULL) {
@@ -2230,13 +2259,13 @@ $.fn.drawImage = function self(args) {
 			if (params.height === NULL && params.sHeight !== NULL) {
 				params.height = params.sHeight;
 			}
-			
+						
 			// If sWidth is not defined, use image width
-			if (params.sWidth === NULL && params.width !== NULL) {
+			if (params.sWidth === NULL) {
 				args.sWidth = params.sWidth = img.width;
 			}
 			// If sHeight is not defined, use image height
-			if (params.sHeight === NULL && params.height !== NULL) {
+			if (params.sHeight === NULL) {
 				args.sHeight = params.sHeight = img.height;
 			}
 			
@@ -2275,6 +2304,7 @@ $.fn.drawImage = function self(args) {
 			if ((params.sy + params.sHeight / 2) > img.height) {
 				params.sy = img.height - params.sHeight / 2;
 			}
+
 			
 			// If only width is present
 			if (params.width !== NULL && params.height === NULL) {
@@ -2287,6 +2317,7 @@ $.fn.drawImage = function self(args) {
 				args.width = params.width = img.width;
 				args.height = params.height = img.height;
 			}
+			
 			
 		}
 		
