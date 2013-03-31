@@ -87,6 +87,8 @@ defaults = {
 	repeat: 'repeat',
 	rotate: 0,
 	rounded: FALSE,
+	rx: NULL, // registration point, x
+	ry: NULL, // registration point, y
 	scale: 1,
 	scaleX: 1,
 	scaleY: 1,
@@ -2318,7 +2320,19 @@ $.fn.drawImage = function self(args) {
 				args.height = params.height = img.height;
 			}
 			
-			
+			if( params.rx === NULL ) {
+				params.rx = params.x - params.width / 2;
+			} else{
+				params.rx = tryConvertPercentage(cleanParams.rx, params.width);
+				params.rx = params.x - params.rx;
+			}
+			if( params.ry === NULL ) {
+				params.ry = params.y - params.height / 2;
+			} else {
+				params.ry = tryConvertPercentage(cleanParams.ry, params.height);
+				params.ry = params.y - params.ry;
+				
+			}
 		}
 		
 		// Set global canvas properties
@@ -2334,8 +2348,8 @@ $.fn.drawImage = function self(args) {
 			params.sy - params.sHeight / 2,
 			params.sWidth,
 			params.sHeight,
-			params.x - params.width / 2,
-			params.y - params.height / 2,
+			params.rx,
+			params.ry,
 			params.width,
 			params.height
 		);
