@@ -1,13 +1,7 @@
 #!/usr/bin/env python
 # This script supports Python 2 and 3
 
-import datetime, sys, os, subprocess, re
-
-# Run shell command
-def run_cmd(cmd):
-	process = subprocess.Popen(cmd.split(' '), stdout=subprocess.PIPE)
-	out, err = process.communicate()
-	return out.decode('utf-8')
+import datetime, sys, os, re
 
 # Compress source file
 def compress_file(source):
@@ -15,23 +9,23 @@ def compress_file(source):
 	compressed = re.sub('(\.\w+)$', '.min\\1', source)
 	
 	# Compress source file using Google Closure Compiler
-	run_cmd('java -jar build/closure-compiler.jar --js ' + source + ' --js_output_file ' + compressed + ' --compilation_level SIMPLE_OPTIMIZATIONS')
+	os.system('java -jar build/closure-compiler.jar --js ' + source + ' --js_output_file ' + compressed + ' --compilation_level SIMPLE_OPTIMIZATIONS')
 
 # Update version in given source file
 def replace_in_file(path, expression, version, count=0):
 	# Open source file for reading and writing
-	f = open(path, 'r')
+	file = open(path, 'r+')
 	# Read contents from source file
-	contents = f.read()
-	f.close()
+	contents = file.read()
 	
 	# Update source version
 	contents = re.sub(expression, version, contents, count)
 	
 	# Write updated source to source file
-	f = open(path, 'w')
-	f.write(contents)
-	f.close()
+	file.truncate(0)
+	file.seek(0)
+	file.write(contents)
+	file.close()
 	
 # Main function
 def main():
