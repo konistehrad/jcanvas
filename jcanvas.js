@@ -88,6 +88,7 @@ defaults = {
 	miterLimit: 10,
 	name: NULL,
 	opacity: 1,
+	preserveAspect: FALSE,
 	projection: 0,
 	r1: NULL,
 	r2: NULL,
@@ -2632,9 +2633,31 @@ $.fn.drawImage = function drawImage(args) {
 	
 		// Calculate image dimensions only once
 		if (e === 0) {
-		
-			// Calculate the image's width to height ratio
-			scaleFactor = img.width / img.height;
+			// If we were asked to preserve image aspect ...		 
+			if( params.preserveAspect )
+			{
+				// Calculate the image's width to height ratio
+				scaleFactor = img.width / img.height;
+				
+				// we were provided width, but not height. keep height in-aspect.
+				if(params.width !== NULL && params.height === NULL) {
+					params.height = params.width / scaleFactor;
+				}
+				
+				// repeat for sWidth, sHeight
+				if(params.sWidth !== NULL && params.sHeight === NULL) {
+					params.sHeight = params.sWidth / scaleFactor;
+				}
+				
+				// we were provided height, but not width. keep width in-aspect.
+				if(params.width === NULL && params.height !== NULL) {
+					params.width = params.height * scaleFactor;
+				}
+				
+				if(params.sWidth === NULL && params.sHeight !== NULL) {
+					params.sWidth = params.sHeight * scaleFactor;
+				}
+			}
 			
 			// If width and sWidth are not defined, use image width
 			if (params.width === NULL && params.sWidth === NULL) {
